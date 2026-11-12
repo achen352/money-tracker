@@ -97,6 +97,18 @@ class SyncTest(TempDBTest):
         self.assertEqual(gain, 200)
 
 
+class EnvReloadTest(TempDBTest):
+    def test_edits_to_env_apply_without_restart(self):
+        from money import config
+        self.assertEqual(config.plaid_settings()["client_id"], "")
+        config.ENV_FILE.write_text('PLAID_CLIENT_ID=abc123\nPLAID_SECRET="s3cr3t"  # comment\nPLAID_ENV=Sandbox\n')
+        s = config.plaid_settings()
+        self.assertEqual((s["client_id"], s["secret"], s["env"]), ("abc123", "s3cr3t", "sandbox"))
+        config.ENV_FILE.write_text("PLAID_CLIENT_ID=new456\nPLAID_SECRET=x\n")
+        self.assertEqual(config.plaid_settings()["client_id"], "new456")
+        self.assertEqual(config.plaid_settings()["env"], "production")
+
+
 class TokenStoreTest(TempDBTest):
     def test_store_and_forget(self):
         plaid_api.store_item("i1", "access-sandbox-x", "Bank", "ins_1", ["transactions"])

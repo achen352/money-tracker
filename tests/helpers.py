@@ -12,7 +12,8 @@ class TempDBTest(unittest.TestCase):
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="money-test-"))
-        self._saved = {k: getattr(config, k) for k in ("VIEWS_DIR", "SECRETS_DIR", "ITEMS_FILE")}
+        self._saved = {k: getattr(config, k) for k in ("VIEWS_DIR", "SECRETS_DIR", "ITEMS_FILE", "ENV_FILE")}
+        config.ENV_FILE = self.tmp / ".env"  # never read the real .env (it holds real keys)
         self._saved_env = os.environ.get("MONEY_DB")
         os.environ["MONEY_DB"] = str(self.tmp / "test.db")
         config.VIEWS_DIR = self.tmp / "views"

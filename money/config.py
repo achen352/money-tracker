@@ -17,20 +17,40 @@ DEFAULT_DB = DATA_DIR / "money.db"
 DEMO_DB = DATA_DIR / "demo.db"
 
 
-def load_env(path: Path = ENV_FILE) -> None:
-    """Minimal .env loader (KEY=VALUE lines). Existing environment variables win."""
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
+_EXTERNAL_ENV = set(os.environ)  # variables set outside .env, which always win
+
+
+def read_env_file(path: Path | None = None) -> dict[str, str]:
+    """Parse .env (KEY=VALUE lines, # comments, optional quotes)."""
+    path = path or ENV_FILE
+    values: dict[str, str] = {}
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+    except OSError:
+        return values
+    for line in text.splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, _, value = line.partition("=")
-        value = value.split(" #", 1)[0].strip().strip('"').strip("'")
-        os.environ.setdefault(key.strip(), value)
+        values[key.strip()] = value.split(" #", 1)[0].strip().strip('"').strip("'")
+    return values
+
+
+def load_env(path: Path | None = None) -> None:
+    for key, value in read_env_file(path).items():
+        os.environ.setdefault(key, value)
 
 
 load_env()
+
+
+def setting(key: str, default: str = "") -> str:
+    """A setting from the real environment, else from .env read fresh, so editing .env takes
+    effect without restarting the long-running dashboard server."""
+    if key in _EXTERNAL_ENV:
+        return os.environ.get(key, default)
+    return read_env_file().get(key, default)
 
 
 def db_path() -> Path:
@@ -46,12 +66,12 @@ def is_demo() -> bool:
 
 
 def port() -> int:
-    return int(os.environ.get("MONEY_PORT") or 8765)
+    return int(setting("MONEY_PORT") or 8765)
 
 
 def plaid_settings() -> dict:
     return {
-        "client_id": os.environ.get("PLAID_CLIENT_ID", "").strip(),
-        "secret": os.environ.get("PLAID_SECRET", "").strip(),
-        "env": (os.environ.get("PLAID_ENV") or "production").strip().lower(),
+        "client_id": setting("PLAID_CLIENT_ID").strip(),
+        "secret": setting("PLAID_SECRET").strip(),
+        "env": (setting("PLAID_ENV") or "production").strip().lower(),
     }
