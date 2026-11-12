@@ -206,7 +206,7 @@ def serve(port: int | None = None, open_path: str | None = None, auto_sync: bool
     config.VIEWS_DIR.mkdir(parents=True, exist_ok=True)
     print(f"Dashboard: {url}{'  (DEMO DATA)' if config.is_demo() else ''}")
     print(f"Link accounts (open in your normal browser): {url}/link")
-    print("VS Code: Ctrl+Shift+P > 'Simple Browser: Show' > paste the dashboard URL. Ctrl+C to stop.")
+    print("VS Code: click the Money icon in the Activity Bar (install it once: python -m money vscode).")
 
     if auto_sync and not config.is_demo() and plaid_api.load_items() and config.plaid_settings()["client_id"]:
         conn = db.connect()

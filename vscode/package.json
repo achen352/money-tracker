@@ -1,0 +1,67 @@
+{
+  "name": "money-dashboard",
+  "displayName": "Money Dashboard",
+  "description": "Your local money-tracker dashboard in the VS Code sidebar.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": { "vscode": "^1.74.0" },
+  "categories": ["Visualization", "Other"],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onView:money.dashboard",
+    "onCommand:money.openPanel",
+    "onCommand:money.sync",
+    "onCommand:money.link",
+    "onCommand:money.reload",
+    "onCommand:money.showLog"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        { "id": "money", "title": "Money", "icon": "media/money.svg" }
+      ]
+    },
+    "views": {
+      "money": [
+        { "type": "webview", "id": "money.dashboard", "name": "Dashboard" }
+      ]
+    },
+    "commands": [
+      { "command": "money.openPanel", "title": "Open Dashboard in Editor", "category": "Money", "icon": "$(open-preview)" },
+      { "command": "money.reload", "title": "Reload Dashboard", "category": "Money", "icon": "$(refresh)" },
+      { "command": "money.sync", "title": "Sync Accounts", "category": "Money", "icon": "$(sync)" },
+      { "command": "money.link", "title": "Link an Account (opens browser)", "category": "Money", "icon": "$(add)" },
+      { "command": "money.showLog", "title": "Show Server Log", "category": "Money" }
+    ],
+    "menus": {
+      "view/title": [
+        { "command": "money.openPanel", "when": "view == money.dashboard", "group": "navigation@1" },
+        { "command": "money.reload", "when": "view == money.dashboard", "group": "navigation@2" },
+        { "command": "money.sync", "when": "view == money.dashboard", "group": "1_actions@1" },
+        { "command": "money.link", "when": "view == money.dashboard", "group": "1_actions@2" },
+        { "command": "money.showLog", "when": "view == money.dashboard", "group": "2_debug@1" }
+      ]
+    },
+    "configuration": {
+      "title": "Money",
+      "properties": {
+        "money.projectPath": {
+          "type": "string",
+          "default": "",
+          "description": "Folder of the money-tracker repo. Empty: the folder it was installed from."
+        },
+        "money.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Python executable. Empty: the Python that installed the extension."
+        },
+        "money.port": {
+          "type": "number",
+          "default": 0,
+          "description": "Dashboard port. 0: MONEY_PORT from .env, else 8765."
+        }
+      }
+    }
+  }
+}

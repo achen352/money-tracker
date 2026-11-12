@@ -1,8 +1,9 @@
 # money-tracker
 
 Local personal-finance tracker: Plaid pulls bank / credit card / Venmo / investment data into
-SQLite (`data/money.db`); a local dashboard (http://127.0.0.1:8765) shows charts; you (Claude)
-analyze through the `python -m money` CLI and add charts to the dashboard.
+SQLite (`data/money.db`); a local dashboard (served at http://127.0.0.1:8765, shown in VS Code
+through the Money Activity Bar sidebar from `vscode/`) shows charts; you (Claude) analyze through
+the `python -m money` CLI and add charts to the dashboard.
 Python 3.10+, standard library only - do not add dependencies without asking.
 
 ## Privacy rules (this repo is PUBLIC)
@@ -76,7 +77,10 @@ Remove views the user no longer wants (`view rm`). Don't create Artifacts for fi
 - `money/cli.py`: argparse commands · `money/sync.py`: Plaid → SQLite · `money/plaid_api.py`: REST
   client + token store · `money/rules.py`: categories, transfers, net-worth history · `money/views.py`:
   dashboard specs · `money/reports.py`: text summaries · `money/server.py`: local HTTP server ·
-  `money/web/`: dashboard + Plaid Link page (Plotly from CDN) · `money/demo.py`: fake data
+  `money/web/`: dashboard + Plaid Link page (Plotly from CDN; `?embed=1` mode for VS Code) ·
+  `money/demo.py`: fake data · `vscode/`: VS Code extension (plain JS webview that iframes the
+  dashboard and starts the server; installed by `python -m money vscode` via `money/vscode_ext.py`;
+  reinstall after editing it, but `money/web/` changes only need a refresh)
 - Tests: `python -m unittest discover -s tests -t .` (stdlib unittest, fake Plaid client, temp DBs).
 - Windows/PowerShell 5.1 note: don't rewrite source files with `Get-Content | Set-Content` (it
   corrupts UTF-8); use the Edit tool.

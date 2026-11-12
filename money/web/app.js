@@ -8,6 +8,17 @@ const $ = (sel, el = document) => el.querySelector(sel);
 const state = { range: "6", version: null, data: null, knownCustom: null, modes: {}, cards: new Map() };
 try { state.range = localStorage.getItem("money.range") || "6"; } catch (_) { /* storage unavailable */ }
 
+// Embedded in VS Code (see vscode/extension.js): theme + background come from the editor.
+const QS = new URLSearchParams(location.search);
+const EMBED = QS.has("embed");
+function applyLook(theme, bg) {
+  const root = document.documentElement;
+  if (theme === "light" || theme === "dark") root.dataset.theme = theme;
+  if (bg && /^(#[0-9a-f]{3,8}|rgba?\([\d.,\s%]+\))$/i.test(bg)) root.style.setProperty("--page", bg);
+}
+applyLook(QS.get("theme"), QS.get("bg"));
+if (EMBED) document.documentElement.classList.add("embed");
+
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const palette = () => Array.from({ length: 8 }, (_, i) => css(`--series-${i + 1}`));
 
@@ -136,14 +147,29 @@ function barGap(widthPx, slots, barsPerSlot) {
   return Math.max(0.1, Math.min(0.95, 1 - want / slot));
 }
 
-function plot(div, spec) {
+// HTML legend above the plot: wraps at any width (Plotly's own legend turns into a
+// scrolling column in a narrow sidebar). Present for 2+ series; text stays in ink colors.
+function renderLegend(el_, series, type) {
+  if (!el_) return;
+  if (series.length < 2 || type === "hbar") { el_.replaceChildren(); return; }
+  const lineKey = type === "line" || type === "area";
+  el_.replaceChildren(...series.map((s) => el("span", { class: "key" },
+    el("i", { class: lineKey ? "line" : "", style: `background:${s.color}` }), s.name)));
+}
+
+function plot(div, spec, legendEl) {
   const { xs, series } = seriesFrom(spec);
   assignColors(series, spec);
+  const type = spec.chart;
+  renderLegend(legendEl, series, type);
   const f = colFormat(spec, series[0] && series[0].col);
   const surface = css("--surface");
-  const xLabels = xs.map(monthLabel);
   const width = div.clientWidth || 400;
-  const type = spec.chart;
+  // Month categories: unique full labels as values; when space is tight, ticks drop the year
+  // except on the first month and on January.
+  const xLabels = xs.map((v) => monthLabel(v));
+  const compact = (width - 60) / Math.max(1, xs.length) < 56;
+  const tickText = xs.map((v, i) => (isMonth(v) && compact && i > 0 && !v.endsWith("-01") ? MONTHS[+v.slice(5) - 1] : monthLabel(v)));
   let traces, layout;
 
   if (type === "hbar") {
@@ -186,7 +212,6 @@ function plot(div, spec) {
     layout.yaxis = { ...layout.yaxis, ...axisFormat(allY, f) };
     if (xs.length && (isMonth(xs[0]) || /^\d{4}-\d{2}-\d{2}/.test(xs[0]))) layout.xaxis.type = "date";
     layout.hovermode = "x unified";
-    layout.showlegend = series.length > 1;
   } else { // bar | stacked
     layout = baseLayout(280);
     const stacked = type === "stacked";
@@ -200,11 +225,10 @@ function plot(div, spec) {
       customdata: s.y.map((v) => fmt(v, f)),
       hovertemplate: `${s.name}: %{customdata}<extra></extra>`,
     }));
-    layout.xaxis = { ...layout.xaxis, type: "category" };
+    layout.xaxis = { ...layout.xaxis, type: "category", tickangle: 0, tickvals: xLabels, ticktext: tickText };
     const totals = stacked ? xs.map((_, i) => sum(series.map((s) => s.y[i]))) : series.flatMap((s) => s.y);
     layout.yaxis = { ...layout.yaxis, ...axisFormat(totals.concat(series.flatMap((s) => s.y)), f) };
     layout.hovermode = "x unified";
-    layout.showlegend = series.length > 1;
   }
   Plotly.react(div, traces, layout, { displayModeBar: false, responsive: true }).then(() => {
     // Re-fit the bar gap to the real plot width so columns stay <= ~24px thick.
@@ -312,10 +336,11 @@ function card(spec, opts = {}) {
   } else if (mode === "table" || !canChart) {
     body.append(renderTable(spec));
   } else {
+    const legend = el("div", { class: "legend" });
     const div = el("div", { class: "chart" });
-    body.append(div);
+    body.append(legend, div);
     requestAnimationFrame(() => {
-      try { plot(div, spec); } catch (e) { div.replaceWith(el("div", { class: "error" }, String(e.message || e))); }
+      try { plot(div, spec, legend); } catch (e) { div.replaceWith(el("div", { class: "error" }, String(e.message || e))); }
     });
   }
   node.querySelectorAll(".js-plotly-plot").forEach((p) => Plotly.purge(p));
@@ -435,5 +460,20 @@ $("#sync").addEventListener("click", async () => {
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => render());
 let resizeTimer;
 window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(render, 200); });
+
+if (EMBED) {
+  window.addEventListener("message", (e) => {
+    if (e.source !== window.parent) return;
+    const m = e.data || {};
+    if (m.type === "money:theme") { applyLook(m.theme, m.bg); render(); }
+  });
+  // Webviews can't open new windows: hand "open in browser" links (Plaid Link, Reconnect) to VS Code.
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[target="_blank"]');
+    if (!a) return;
+    e.preventDefault();
+    window.parent.postMessage({ type: "money:open-external", url: a.href }, "*");
+  });
+}
 
 refresh().then(poll);

@@ -5,8 +5,8 @@ description: Put a chart or table of the user's finances on the local money dash
 
 # Make a dashboard chart
 
-Charts are JSON files in `data/views/<kebab-slug>.json`. The dashboard (http://127.0.0.1:8765, usually
-open in a VS Code Simple Browser tab beside you) polls every 2s, shows new views at the top under
+Charts are JSON files in `data/views/<kebab-slug>.json`. The dashboard (the Money sidebar in VS Code,
+usually open beside you; also http://127.0.0.1:8765) polls every 2s, shows new views at the top under
 "From Claude", and highlights them. The SQL runs locally on every refresh; you never need to put
 data rows in the file or in your context.
 
@@ -17,7 +17,7 @@ data rows in the file or in your context.
 2. Write the spec file (Write tool). Re-using a slug updates that chart in place.
 3. Validate: `python -m money view check <slug>`. It prints row count + first rows, or the error.
 4. Reply in chat with the takeaway in a sentence or two, and say it's on the dashboard. If the
-   dashboard isn't running: `python -m money serve` (or the VS Code task "Money: dashboard").
+   user doesn't have it open: click the Money icon in the Activity Bar (it starts the server).
 
 ## Spec
 

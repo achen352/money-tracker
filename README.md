@@ -6,7 +6,8 @@ up so Claude Code can analyze your money and draw charts for you while you chat.
 
 - **Aggregation:** [Plaid](https://plaid.com) (free Trial plan: up to 10 connected institutions).
 - **Storage:** `data/money.db` (SQLite). Nothing is committed; a git hook blocks data and secrets.
-- **Dashboard:** `http://127.0.0.1:8765`, meant to sit in a VS Code tab next to the Claude panel.
+- **Dashboard:** a **Money** icon in VS Code's left Activity Bar opens it in the sidebar (or an
+  editor tab), right next to the Claude panel. Also at `http://127.0.0.1:8765` in any browser.
 - **Claude:** reads compact summaries via `python -m money ...` and adds charts by writing small
   JSON files that the dashboard picks up live.
 - **No dependencies:** Python 3.10+ standard library only.
@@ -35,20 +36,22 @@ up so Claude Code can analyze your money and draw charts for you while you chat.
    To try the flow with a fake bank first, use the sandbox secret with `PLAID_ENV=sandbox` and log
    in as `user_good` / `pass_good`.
 
-3. **Start the dashboard.** In VS Code: *Terminal → Run Task → Money: dashboard*. This task also
-   starts automatically when you open the folder, once you allow automatic tasks. Or run:
+3. **Add the dashboard to VS Code** (once):
 
    ```sh
-   python -m money serve
+   python -m money vscode
    ```
 
-4. **Put it beside Claude.** `Ctrl+Shift+P` → **Simple Browser: Show** → `http://127.0.0.1:8765`.
-   Drag that tab to one side and keep the Claude Code panel on the other.
+   This installs a small local extension (no marketplace, no npm). A bar-chart **Money** icon
+   appears in the left Activity Bar. Click it and the dashboard opens in the sidebar; the server
+   starts and stops by itself. The *Open Dashboard in Editor* button in the view's title bar opens
+   it as a wider editor tab instead. If Claude Code also lives in the left sidebar, drag either one to the right-hand
+   (secondary) sidebar so you can see both at once.
 
-5. **Link your accounts:** run `python -m money link`, or click *Link account*. This opens your
-   normal browser, because banks log in through pop-ups that VS Code's Simple Browser blocks. Pick
-   **Bank, credit card, or Venmo** or **Investment account**, then log in inside Plaid's window.
-   Repeat once per institution. Venmo is just another institution in the list.
+4. **Link your accounts:** click *Link account* in the dashboard, or run `python -m money link`.
+   This opens your normal browser, because bank logins use pop-up windows that VS Code can't show.
+   Pick **Bank, credit card, or Venmo** or **Investment account**, then log in inside Plaid's
+   window. Repeat once per institution. Venmo is just another institution in the list.
 
 That's it. Each login is saved as a revocable access token in `secrets/` (gitignored). From then
 on, `python -m money sync` (or the dashboard's *Sync* button) pulls fresh data whenever you want.
@@ -91,7 +94,8 @@ What makes this work well:
 
 | command | what it does |
 |---|---|
-| `python -m money serve` | dashboard + Link page on http://127.0.0.1:8765 |
+| `python -m money vscode` | install the VS Code sidebar (Activity Bar icon) |
+| `python -m money serve` | run the dashboard server by hand (http://127.0.0.1:8765) |
 | `python -m money link [--update ITEM]` | connect (or reconnect) an institution |
 | `python -m money sync` | pull new data |
 | `python -m money status` | connections and their health |
@@ -131,5 +135,7 @@ What makes this work well:
 python -m unittest discover -s tests -t .
 ```
 
-Layout: `money/` (CLI, Plaid sync, rules, views, server), `money/web/` (dashboard), `tests/`,
-`.claude/` (Claude Code settings + skills), `.vscode/tasks.json`.
+Layout: `money/` (CLI, Plaid sync, rules, views, server), `money/web/` (dashboard), `vscode/`
+(the sidebar extension: plain JS, no build step), `tests/`, `.claude/` (Claude Code settings +
+skills), `.vscode/tasks.json`. After changing `vscode/`, run `python -m money vscode` again.
+Dashboard changes in `money/web/` need no reinstall; click the view's refresh button.

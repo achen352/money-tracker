@@ -274,6 +274,20 @@ def cmd_unlink(args) -> int:
     return 0
 
 
+def cmd_vscode(args) -> int:
+    from money import vscode_ext
+    if args.build_only:
+        _out(f"Built {vscode_ext.build()}")
+        return 0
+    vsix, status = vscode_ext.install()
+    if status != "ok":
+        _out(status)
+        return 1
+    _out("Installed the Money Dashboard extension. Click the bar-chart icon in VS Code's left Activity Bar\n"
+         "(if it isn't there yet: Ctrl+Shift+P > 'Developer: Reload Window').")
+    return 0
+
+
 def cmd_demo(args) -> int:
     from money import demo
     config.use_demo()
@@ -372,6 +386,10 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("item")
     s.add_argument("--delete-data", action="store_true", help="also delete its accounts and transactions")
     s.set_defaults(fn=cmd_unlink)
+
+    s = sub.add_parser("vscode", help="install the VS Code sidebar extension (Activity Bar icon)")
+    s.add_argument("--build-only", action="store_true", help="just build data/vscode/*.vsix")
+    s.set_defaults(fn=cmd_vscode)
 
     sub.add_parser("demo", help="(re)generate the demo database").set_defaults(fn=cmd_demo)
     return p

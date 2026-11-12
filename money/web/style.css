@@ -23,8 +23,9 @@
   --series-other: #b4b2a9;
 }
 
+/* Dark: follows the OS unless the page is told a theme (VS Code passes ?theme=). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
     --page: #0d0d0d;
     --surface: #1a1a19;
@@ -48,6 +49,30 @@
     --series-8: #e66767;
     --series-other: #5f5e59;
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --good: #0ca30c;
+  --critical: #e66767;
+  --warning-bg: #3a2f12;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+  --series-other: #5f5e59;
 }
 
 * { box-sizing: border-box; }
@@ -137,6 +162,11 @@ h2.section {
 .tools button { font-size: 11px; padding: 2px 8px; color: var(--ink-2); }
 .tools button[aria-pressed="true"] { border-color: var(--axis); color: var(--ink); }
 .chart { width: 100%; margin-top: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+.legend:empty { display: none; }
+.legend .key { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.legend i.line { width: 14px; height: 2px; border-radius: 1px; }
 
 .table-wrap { overflow-x: auto; margin-top: 8px; max-height: 420px; overflow-y: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -162,4 +192,16 @@ td.wrap { white-space: normal; min-width: 120px; }
 .card .stats .stat { border: none; padding: 4px 0; background: none; }
 
 .placeholder { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
+
+/* Inside VS Code (sidebar or editor tab): tighter, no brand (the view title says "Money"). */
+.embed .brand { display: none; }
+.embed .top { padding: 8px 12px; }
+.embed main { padding: 12px; gap: 12px; }
+.embed .grid { gap: 12px; }
+.embed .banner { margin: 8px 12px 0; }
+.embed .stats { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.embed .stat { padding: 10px 12px; }
+.embed .stat .value { font-size: 20px; }
+.embed .stat.hero .value { font-size: 36px; }
+.embed .card { padding: 12px 12px 10px; }
 .placeholder code { color: var(--ink-2); }

@@ -3,13 +3,18 @@
   "tasks": [
     {
       "label": "Money: dashboard",
-      "detail": "Starts http://127.0.0.1:8765 (then: Ctrl+Shift+P > Simple Browser: Show)",
+      "detail": "Runs the server by hand (the Money sidebar extension normally starts it for you)",
       "type": "shell",
       "command": "python -m money serve",
       "isBackground": true,
       "problemMatcher": [],
-      "presentation": { "reveal": "silent", "panel": "dedicated", "clear": true },
-      "runOptions": { "runOn": "folderOpen" }
+      "presentation": { "reveal": "silent", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "Money: install VS Code sidebar",
+      "type": "shell",
+      "command": "python -m money vscode",
+      "problemMatcher": []
     },
     {
       "label": "Money: demo dashboard",
