@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Money</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">Money</div>
+    <div class="status" id="status">Loading…</div>
+    <div class="actions">
+      <select id="range" aria-label="Time range for charts">
+        <option value="3">Last 3 months</option>
+        <option value="6" selected>Last 6 months</option>
+        <option value="12">Last 12 months</option>
+        <option value="24">Last 24 months</option>
+        <option value="all">All time</option>
+      </select>
+      <button id="sync" type="button">Sync</button>
+      <a class="btn" id="link" href="/link" target="_blank" rel="noopener">Link account</a>
+    </div>
+  </header>
+  <div id="banners"></div>
+  <main>
+    <section id="kpis" aria-label="Overview"></section>
+    <section id="claude-section" hidden>
+      <h2 class="section">From Claude</h2>
+      <div class="grid" id="claude"></div>
+    </section>
+    <h2 class="section">Overview</h2>
+    <div class="grid" id="builtin"></div>
+  </main>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

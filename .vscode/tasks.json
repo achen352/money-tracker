@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Money: dashboard",
+      "detail": "Starts http://127.0.0.1:8765 (then: Ctrl+Shift+P > Simple Browser: Show)",
+      "type": "shell",
+      "command": "python -m money serve",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "dedicated", "clear": true },
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    {
+      "label": "Money: demo dashboard",
+      "detail": "Fake data on port 8766, to try things out",
+      "type": "shell",
+      "command": "python -m money --demo serve --port 8766",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "dedicated" }
+    },
+    {
+      "label": "Money: sync",
+      "type": "shell",
+      "command": "python -m money sync",
+      "problemMatcher": []
+    },
+    {
+      "label": "Money: link an account",
+      "type": "shell",
+      "command": "python -m money link",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Money: tests",
+      "type": "shell",
+      "command": "python -m unittest discover -s tests -t .",
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

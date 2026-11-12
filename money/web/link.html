@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Link an account</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    main { max-width: 560px; }
+    .choices { display: grid; gap: 10px; }
+    .choices button { text-align: left; padding: 12px 14px; font-size: 14px; }
+    .choices small { display: block; color: var(--ink-2); font-size: 12px; margin-top: 2px; }
+    #log p { margin: 6px 0; }
+    .ok { color: var(--good); }
+    .bad { color: var(--critical); }
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand">Link an account</div><div class="status" id="env"></div>
+    <div class="actions"><a class="btn" href="/">Back to dashboard</a></div></header>
+  <main>
+    <section class="card" id="choose">
+      <p class="sub" style="margin-top:0">You log in inside Plaid's window. Your bank password never touches this app;
+        only a revocable access token is saved locally in <code>secrets/</code>.</p>
+      <div class="choices" id="choices">
+        <button type="button" data-mode="bank">Bank, credit card, or Venmo
+          <small>Checking, savings, credit cards, Venmo: balances + up to 24 months of transactions</small></button>
+        <button type="button" data-mode="investments">Investment account
+          <small>Brokerage, 401(k), IRA: balances + holdings</small></button>
+      </div>
+    </section>
+    <section class="card" id="update" hidden>
+      <h3>Reconnect</h3>
+      <p class="sub">Your bank needs you to log in again. Nothing else changes.</p>
+      <button type="button" class="primary" id="reconnect">Log in again</button>
+    </section>
+    <section class="card"><div id="log"><p class="sub" style="margin:0">Each login counts as one connection
+      (the free Plaid Trial allows 10). Link one at a time; repeat for each bank.</p></div></section>
+  </main>
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+  <script>
+    "use strict";
+    const log = (msg, cls) => {
+      const p = document.createElement("p");
+      if (cls) p.className = cls;
+      p.textContent = msg;
+      document.getElementById("log").append(p);
+    };
+    const post = async (url, body) => {
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+      return data;
+    };
+    const updateItem = new URLSearchParams(location.search).get("update");
+
+    async function start(mode) {
+      let token;
+      try {
+        const t = await post("/api/link/token", updateItem ? { item_id: updateItem } : { mode });
+        token = t.link_token;
+        document.getElementById("env").textContent = `Plaid environment: ${t.env}`;
+      } catch (e) {
+        return log(`Couldn't start Plaid Link: ${e.message}`, "bad");
+      }
+      const handler = Plaid.create({
+        token,
+        onSuccess: async (public_token, metadata) => {
+          try {
+            if (updateItem) {
+              await post("/api/link/updated", { item_id: updateItem });
+              log("Reconnected. Syncing now; the dashboard updates when it's done.", "ok");
+            } else {
+              const r = await post("/api/link/exchange", { public_token, mode, institution: metadata.institution });
+              log(`Linked ${r.institution || "account"}. Syncing now; you can link another or go back to the dashboard.`, "ok");
+            }
+          } catch (e) {
+            log(`Linking failed: ${e.message}`, "bad");
+          }
+        },
+        onExit: (err) => { if (err) log(`Plaid: ${err.display_message || err.error_message || err.error_code}`, "bad"); },
+      });
+      handler.open();
+    }
+
+    if (updateItem) {
+      document.getElementById("choose").hidden = true;
+      document.getElementById("update").hidden = false;
+      document.getElementById("reconnect").addEventListener("click", () => start("update"));
+    }
+    document.querySelectorAll("#choices button").forEach((b) => b.addEventListener("click", () => start(b.dataset.mode)));
+  </script>
+</body>
+</html>

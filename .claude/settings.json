@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m money *)",
+      "PowerShell(python -m money *)",
+      "Bash(python -m unittest *)",
+      "PowerShell(python -m unittest *)",
+      "Write(./data/views/**)",
+      "Edit(./data/views/**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./secrets/**)",
+      "Edit(./secrets/**)",
+      "Write(./secrets/**)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && python -m money brief 2>/dev/null || true",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
