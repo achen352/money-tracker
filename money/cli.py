@@ -270,7 +270,8 @@ def cmd_unlink(args) -> int:
     else:
         conn.execute("UPDATE accounts SET hidden = 1 WHERE item_id = ?", (args.item,))
     rules.refresh_derived(conn)
-    _out(f"Unlinked {info.get('institution_name')}.")
+    _out(f"Unlinked {info.get('institution_name')}. (On Plaid's free Trial, this does not free up one "
+         "of your 10 connection slots.)")
     return 0
 
 

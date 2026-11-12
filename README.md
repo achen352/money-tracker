@@ -23,9 +23,19 @@ up so Claude Code can analyze your money and draw charts for you while you chat.
    This creates `.env`, `data/`, `secrets/`, and your private `CLAUDE.local.md`, and turns on the
    pre-commit hook.
 
-2. **Get Plaid keys.** Sign up at [dashboard.plaid.com](https://dashboard.plaid.com/signup). New
-   teams get a free **Trial** plan with real (production) data for up to 10 institutions. Under
-   *Developers → Keys*, copy the `client_id` and the **production** secret into `.env`:
+2. **Get Plaid keys (free).** Sign up at [dashboard.plaid.com](https://dashboard.plaid.com/signup),
+   then apply for the free **Trial** plan: use the Trial button on the dashboard home page, or go
+   to dashboard.plaid.com/trial-plan. It's usually approved automatically after an identity check.
+   The Trial plan uses Plaid's real production API (so `PLAID_ENV=production`), but it's never billed.
+
+   > **Don't click "Get Production access" or "Request access" under Production.** That applies
+   > for the *paid* plan. It can't be undone, and it bills a monthly fee per connected account
+   > even if you never sync.
+
+   Trial limits: 10 connections (bank logins) in total. Removing one doesn't free its slot, so
+   link each institution once, and use *Reconnect* instead of a fresh link when a bank asks you to
+   log in again. API calls are unlimited. From the Keys page, copy the `client_id` and the
+   Production secret into `.env`:
 
    ```
    PLAID_CLIENT_ID=...
